@@ -1,5 +1,6 @@
 package ppk.perpus.auth;
 
+import jakarta.servlet.http.HttpServletResponse;
 import ppk.perpus.service.CustomUserDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -36,8 +37,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                // Nonaktifkan CSRF (pakai lambda style)
+        http
+                // Nonaktifkan CSRF
                 .csrf(csrf -> csrf.disable())
 
                 // Atur session agar stateless
@@ -45,17 +46,27 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // Konfigurasi otorisasi request
+                // Konfigurasi otorisasi request - IMPORTANT: Order matters!
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/register", "/login", "/docs/**").permitAll()
-                .anyRequest().authenticated()
+                        // Public endpoints HARUS di atas
+                        .requestMatchers(
+                                "/register",
+                                "/login",
+                                "/v3/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/docs/**",
+                                "/error"
+                        ).permitAll()
+
+                        // Semua endpoint lain harus terautentikasi
+                        .anyRequest().authenticated()
                 )
 
-                // Tambahkan JWT filter
-                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                // Tambahkan JWT filter SETELAH konfigurasi authorization
+                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
-                // Build konfigurasi
-                .build();
+        return http.build();
     }
 
     @Bean

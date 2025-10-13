@@ -23,18 +23,44 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (!hasAuthorizationBearer(request)) {
+
+        // Skip filter untuk endpoint public
+        String path = request.getRequestURI();
+        System.out.println("JwtFilter: Processing request for path: " + path);
+
+        if (isPublicPath(path)) {
+            System.out.println("JwtFilter: Skipping JWT validation for public path: " + path);
             filterChain.doFilter(request, response);
             return;
         }
+
+        if (!hasAuthorizationBearer(request)) {
+            System.out.println("JwtFilter: No Authorization header found");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = getAccessToken(request);
         if (!jwtUtil.validateAccessToken(token)) {
+            System.out.println("JwtFilter: Invalid token");
             filterChain.doFilter(request, response);
             return;
         }
+
         setAuthenticationContext(token, request);
         filterChain.doFilter(request, response);
     }
+
+    // Method untuk mengecek apakah path adalah public endpoint
+    private boolean isPublicPath(String path) {
+        return path.startsWith("/register") ||
+                path.startsWith("/login") ||
+                path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/docs/") ||
+                path.startsWith("/webjars/");
+    }
+
     private boolean hasAuthorizationBearer(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (ObjectUtils.isEmpty(header) || !header.startsWith("Bearer")) {
@@ -42,11 +68,13 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         return true;
     }
+
     private String getAccessToken(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         String token = header.split(" ")[1].trim();
         return token;
     }
+
     private void setAuthenticationContext(String token, HttpServletRequest request) {
         UserDetails userDetails = getUserDetails(token);
         UsernamePasswordAuthenticationToken authentication = new
@@ -55,6 +83,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
+
     private UserDetails getUserDetails(String token) {
         String subject = jwtUtil.getSubject(token);
         return UserDto.builder().email(subject).build();
