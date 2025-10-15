@@ -13,6 +13,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.data.domain.Page;
+
 @RestController
 public class AuthController {
     @Autowired
@@ -21,6 +28,16 @@ public class AuthController {
     JwtUtil jwtUtil;
     @Autowired
     UserService userService;
+
+    @Operation(summary = "User login to get access token.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Email and access token", content = {
+                    @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Page.class))}),
+            @ApiResponse(responseCode = "401",
+                    description = "Invalid credentials",
+                    content = @Content)})
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody @Valid AuthRequest request) {
         try {

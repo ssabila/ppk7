@@ -48,16 +48,20 @@ public class SecurityConfig {
 
                 // Konfigurasi otorisasi request - IMPORTANT: Order matters!
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints HARUS di atas
+                        // Public endpoints untuk authentication
+                        .requestMatchers("/register", "/login").permitAll()
+
+                        // Public endpoints untuk dokumentasi API (OpenAPI & Swagger)
                         .requestMatchers(
-                                "/register",
-                                "/login",
-                                "/v3/**",
+                                "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/docs/**",
-                                "/error"
+                                "/webjars/**"
                         ).permitAll()
+
+                        // Endpoint error
+                        .requestMatchers("/error").permitAll()
 
                         // Semua endpoint lain harus terautentikasi
                         .anyRequest().authenticated()

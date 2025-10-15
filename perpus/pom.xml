@@ -5,7 +5,6 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <!-- Menggunakan versi Spring Boot yang stabil dan terbukti -->
         <version>3.3.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
@@ -89,13 +88,11 @@
             <version>2.3.1</version>
         </dependency>
 
+        <!-- LANGKAH 1: Tambahkan dependency Springdoc seperti di modul -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <!--
-              Versi dihapus dari sini.
-              Spring Boot parent akan secara otomatis menyediakan versi yang kompatibel (misalnya, 2.5.0 untuk Spring Boot 3.3.0).
-            -->
+            <version>2.1.0</version>
         </dependency>
 
     </dependencies>
